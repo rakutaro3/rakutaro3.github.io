@@ -1,10 +1,57 @@
-<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[rakutaro Blog]]></title><description><![CDATA[技術的なメモ]]></description><link>https://rakutaro3.github.io</link><generator>GatsbyJS</generator><lastBuildDate>Sat, 15 Aug 2020 14:45:52 GMT</lastBuildDate><item><title><![CDATA[Reactでバケツリレー]]></title><description><![CDATA[ReactでAtomic Designを実現した際のデータおよび振る舞いの伝播についてメモ。]]></description><link>https://rakutaro3.github.io/posts/2020-08-15---React-With-Atomic-Design/</link><guid isPermaLink="false">https://rakutaro3.github.io/posts/2020-08-15---React-With-Atomic-Design/</guid><pubDate>Tue, 04 Aug 2020 21:04:00 GMT</pubDate><content:encoded>&lt;p&gt;React で Atomic Design を実装してみた。&lt;/p&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[rakutaro Blog]]></title><description><![CDATA[技術的なメモ]]></description><link>https://rakutaro3.github.io</link><generator>GatsbyJS</generator><lastBuildDate>Sun, 16 Aug 2020 03:07:13 GMT</lastBuildDate><item><title><![CDATA[Lambda(Node.js)でcorsエラー]]></title><description><![CDATA[Lambdaでcorsエラーが出てハマった際のメモ。]]></description><link>https://rakutaro3.github.io/posts/2020-08-16---Lambda-cors-settings/</link><guid isPermaLink="false">https://rakutaro3.github.io/posts/2020-08-16---Lambda-cors-settings/</guid><pubDate>Sun, 16 Aug 2020 11:50:00 GMT</pubDate><content:encoded>&lt;p&gt;sls（Serverless Framework）を使用してローカルで開発＆デバッグを行い、deploy コマンドで Lambda へアップロードしたところ、関数を実行すると &lt;code class=&quot;language-text&quot;&gt;&amp;#39;Access-Control-Allow-Origin&amp;#39; header is present on the requested resource.&lt;/code&gt; が発生する状況になり、ハマったため内容を共有。&lt;/p&gt;
+&lt;p&gt;状況&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;sls の yaml で &lt;code class=&quot;language-text&quot;&gt;cors: True&lt;/code&gt; とし、cors を許可している&lt;/li&gt;
+&lt;li&gt;関数の戻り値には headers を設定し、 &lt;code class=&quot;language-text&quot;&gt;&amp;#39;Access-Control-Allow-Origin&amp;#39;: &amp;#39;*&amp;#39;&lt;/code&gt; を設定&lt;/li&gt;
+&lt;li&gt;ローカルでは cors のエラーは出ない&lt;/li&gt;
+&lt;li&gt;プリフライトの OPTIONS リクエストは 200 が返る&lt;/li&gt;
+&lt;li&gt;POST リクエストだけ 502 が返る&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;CloudWatch に吐かれるログを確認するも決定的な情報がなく、しばらくハマったが、結局のところ原因は関数が返すオブジェクトのフォーマットの問題であった。&lt;/p&gt;
+&lt;p&gt;handler 関数は下記のフォーマットのオブジェクトを return する必要がある。&lt;/p&gt;
+&lt;p&gt;参考）&lt;a href=&quot;https://aws.amazon.com/jp/premiumsupport/knowledge-center/malformed-502-api-gateway/&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;https://aws.amazon.com/jp/premiumsupport/knowledge-center/malformed-502-api-gateway/&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;jsx&quot;&gt;&lt;pre class=&quot;language-jsx&quot;&gt;&lt;code class=&quot;language-jsx&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token string&quot;&gt;&quot;isBase64Encoded&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token boolean&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;token boolean&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;token string&quot;&gt;&quot;statusCode&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; httpStatusCode&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;token string&quot;&gt;&quot;headers&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;headerName&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;headerValue&quot;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;...&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;token string&quot;&gt;&quot;body&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;...&quot;&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;今回は body のところにオブジェクトを突っ込んでしまっていたため、フォーマットが間違っているということでエラーが発生していた。&lt;/p&gt;
+&lt;p&gt;そのため、JSON.stringify で body の内容を文字列化することで解決した。&lt;/p&gt;
+&lt;p&gt;ダメな例&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;jsx&quot;&gt;&lt;pre class=&quot;language-jsx&quot;&gt;&lt;code class=&quot;language-jsx&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; data &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+	message&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;message text&quot;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+	status&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;OK&quot;&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; response &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;token string&quot;&gt;&quot;statusCode&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;token string&quot;&gt;&quot;headers&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;token comment&quot;&gt;// 省略&lt;/span&gt;
+	&lt;span class=&quot;token string&quot;&gt;&quot;body&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; data
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; response&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;よい例&lt;/p&gt;
+&lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;jsx&quot;&gt;&lt;pre class=&quot;language-jsx&quot;&gt;&lt;code class=&quot;language-jsx&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; data &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+	message&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;message text&quot;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+	status&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;OK&quot;&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; response &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;token string&quot;&gt;&quot;statusCode&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;token string&quot;&gt;&quot;headers&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;token comment&quot;&gt;// 省略&lt;/span&gt;
+	&lt;span class=&quot;token string&quot;&gt;&quot;body&quot;&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token constant&quot;&gt;JSON&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;stringify&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;data&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token comment&quot;&gt;// オブジェクトを文字列化&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; response&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;ずいぶん初歩的な話だけど、久しぶりにハマってしまった。
+sls のローカル環境は便利だけれど、Lambda とは異なることを理解しなければならないと感じた。&lt;/p&gt;</content:encoded></item><item><title><![CDATA[Reactでバケツリレー]]></title><description><![CDATA[ReactでAtomic Designを実現した際のデータおよび振る舞いの伝播についてメモ。]]></description><link>https://rakutaro3.github.io/posts/2020-08-15---React-With-Atomic-Design/</link><guid isPermaLink="false">https://rakutaro3.github.io/posts/2020-08-15---React-With-Atomic-Design/</guid><pubDate>Sat, 15 Aug 2020 23:00:00 GMT</pubDate><content:encoded>&lt;p&gt;React で Atomic Design を実装してみた。&lt;/p&gt;
 &lt;p&gt;データや振る舞いは Pages に持たせることで再利用性（＆可読性も）を高める仕組みなので、データや振る舞いは下記のように伝播させる必要がある。&lt;/p&gt;
 &lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;jsx&quot;&gt;&lt;pre class=&quot;language-jsx&quot;&gt;&lt;code class=&quot;language-jsx&quot;&gt;Pages → Templates → Organisms → Molecules → Atoms&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;今回は、Button と Input を Atoms として定義し、それらを合わせたものを Organisms とした。&lt;/p&gt;
 &lt;p&gt;さらに、IndexTemplate にデータおよび振る舞いを注入する役割が IndexPage とする。&lt;/p&gt;
 &lt;p&gt;※今回は Molecules は省略&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/media/20200815-1.png&quot; alt=&quot;20200815-1.png&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/media/posts/20200815-1.png&quot; alt=&quot;20200815-1.png&quot;&gt;&lt;/p&gt;
 &lt;p&gt;Atoms/MyInput&lt;/p&gt;
 &lt;div class=&quot;gatsby-highlight&quot; data-language=&quot;jsx&quot;&gt;&lt;pre class=&quot;language-jsx&quot;&gt;&lt;code class=&quot;language-jsx&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;import&lt;/span&gt; React &lt;span class=&quot;token keyword&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&quot;react&quot;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
 
